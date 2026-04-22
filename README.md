@@ -1,4 +1,4 @@
-# AzuraCast Radio Video Stream
+# AzuraCast RTMP Radio Video Stream
 
 This is an example Liquidsoap script that can be included in AzuraCast that will allow you to stream your radio (alongside a video loop) to an RTMP destination, such as YouTube, etc. while writing the currently playing song across the screen dynamically.
 
