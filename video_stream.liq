@@ -69,6 +69,7 @@ videostream = ffmpeg.raw.decode.video(videostream)
 videostream = source.mux.video(video=videostream, radio)
 
 # Encoder settings optimized for RTMP (FLV)
+
 enc =
   %ffmpeg(
     format = "flv",
@@ -77,14 +78,16 @@ enc =
       pixel_format = "yuv420p",
       b = "2500k",
       preset = "veryfast",
-      r = 25,
-      g = 50
+      r = 30,
+      g = 50,
+      width = 1920,
+      height = 1080
     ),
     %audio(
       codec = "aac",
       samplerate = 44100,
       channels = 2,
-      b = "128k"
+      b = "192k"
     )
   )
 
