@@ -29,7 +29,7 @@ nowplaying_file = station_base_dir ^ "/config/nowplaying.txt"
 
 # Align text settings
 font_size = "50"
-font_x = "340"
+font_x = "60"
 font_y = "990"
 font_color = "white"
 
@@ -80,8 +80,6 @@ enc =
       preset = "veryfast",
       r = 30,
       g = 50,
-      width = 1920,
-      height = 1080
     ),
     %audio(
       codec = "aac",
