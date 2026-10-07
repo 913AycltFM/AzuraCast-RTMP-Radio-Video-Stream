@@ -29,7 +29,7 @@ nowplaying_file = station_base_dir ^ "/config/nowplaying.txt"
 
 # Align text settings
 font_size = "50"
-font_x = "340"
+font_x = "70"
 font_y = "990"
 font_color = "white"
 
