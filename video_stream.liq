@@ -77,7 +77,7 @@ enc =
       pixel_format = "yuv420p",
       b = "2500k",
       preset = "veryfast",
-      r = 25,
+      r = 30,
       g = 50
     ),
     %audio(
