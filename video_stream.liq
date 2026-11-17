@@ -87,7 +87,8 @@ enc =
       codec = "aac",
       samplerate = 44100,
       channels = 2,
-      b = "320k"
+      b = "320k",
+      profile = "aac_low"
     )
   )
 
