@@ -79,7 +79,7 @@ enc =
       b = "2500k",
       preset = "veryfast",
       r = 30,
-      g = 50,
+      g = 60,
       width = 1920,
       height = 1080
     ),
@@ -87,7 +87,7 @@ enc =
       codec = "aac",
       samplerate = 44100,
       channels = 2,
-      b = "192k"
+      b = "320k"
     )
   )
 
