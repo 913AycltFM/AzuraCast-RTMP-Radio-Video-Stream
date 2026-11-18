@@ -53,8 +53,8 @@ nowplaying_file = station_base_dir ^ "/config/nowplaying.txt"
 # NOW PLAYING TEXT SETTINGS (1920x1080)
 # ============================================================
 
-font_size = "48"
-font_x = "40"
+font_size = "50"
+font_x = "70"
 font_y = "960"
 font_color = "white"
 
@@ -115,24 +115,27 @@ videostream = source.mux.video(video=videostream, radio_infallible)
 # ENCODING
 # ============================================================
 
-enc = %ffmpeg(
-  format="mpegts",
-  %video.raw(
-    codec="libx264",
-    pixel_format="yuv420p",
-    b="4500k",
-    preset="superfast",
-    r=30,
-    g=60
-  ),
-  %audio(
-    codec="aac",
-    samplerate=44100,
-    channels=2,
-    b="320k",
-    profile="aac_low"
+enc =
+  %ffmpeg(
+    format = "flv",
+    %video(
+      codec = "libx264",
+      pixel_format = "yuv420p",
+      b = "2500k",
+      preset = "veryfast",
+      r = 30,
+      g = 60,
+      width = 1920,
+      height = 1080
+    ),
+    %audio(
+      codec = "aac",
+      samplerate = 44100,
+      channels = 2,
+      b = "320k",
+      profile = "aac_low"
+    )
   )
-)
 
 # ============================================================
 # ICECAST OUTPUT
