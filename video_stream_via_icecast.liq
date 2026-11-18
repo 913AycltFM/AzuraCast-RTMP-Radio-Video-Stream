@@ -1,3 +1,6 @@
+# Custom Configuration (Specified in Station Profile)
+# startcustomconfig(custom_config_bottom)
+#
 # What is This Script?
 # This script allows you to broadcast your AzuraCast radio signal to an Icecast video stream, using a
 # static video file that loops in the background and dynamically writing the currently playing track
