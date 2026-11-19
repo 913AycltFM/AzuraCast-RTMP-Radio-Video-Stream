@@ -2,31 +2,34 @@
 
 A configurable radio-to-video streaming project for [AzuraCast](https://www.azuracast.com/) and [Liquidsoap](https://www.liquidsoap.info/).
 
-The project combines live radio audio from an AzuraCast station with video content to create a video stream. It is designed to be reusable with different AzuraCast stations rather than being tied to one radio brand or station.
+This project combines a live AzuraCast radio audio source with a looping video background and Now Playing text, then sends the resulting video stream to an Icecast mount point. It is designed to be reusable with different AzuraCast stations rather than being tied to one radio brand or station.
 
-The repository is being structured to support different streaming methods over time. The existing configuration provides an RTMP/FLV streaming workflow; additional output methods can be added as the project develops.
+The repository is being developed to support different ways of streaming video from AzuraCast. The current example uses an Icecast MPEG-TS output. Additional streaming methods may be added as the project develops.
 
 ## Features
 
-- Uses live radio audio from an AzuraCast station.
-- Plays a looping background video.
+- Uses the station's live radio audio source.
+- Combines radio audio with a video background.
 - Displays Now Playing information over the video.
-- Refreshes the Now Playing text automatically.
+- Refreshes the Now Playing overlay from AzuraCast's Now Playing text file.
+- Sends the output to an Icecast mount point.
 - Encodes video with H.264.
 - Encodes audio with AAC.
-- Supports a configurable streaming destination and stream key.
-- Keeps station-specific paths and credentials configurable.
-- Designed to allow additional streaming methods in future updates.
+- Uses configurable station paths, mount point, port, and Icecast credentials.
+- Keeps the video output separate from the station's normal listener-facing radio stream.
+- Provides a foundation for additional streaming methods in the future.
 
 ## Current streaming workflow
 
-The current implementation uses Liquidsoap and FFmpeg to combine the radio audio and video, encode the result, and send it to a private RTMP destination.
+The current example is `video_stream_via_icecast.liq`. It uses Liquidsoap and FFmpeg to combine the radio audio and video, encode the result, and publish the stream to an Icecast mount point.
 
-Current RTMP output settings:
+### Output format
+
+- Container: MPEG-TS
+- Icecast mount example: `/video.ts`
 
 ### Video
 
-- Container: FLV
 - Codec: H.264 (libx264)
 - Pixel format: yuv420p
 - Resolution: 1920 × 1080
@@ -38,105 +41,135 @@ Current RTMP output settings:
 ### Audio
 
 - Codec: AAC
+- Profile: AAC-LC
 - Sample rate: 44.1 kHz
 - Channels: 2 (stereo)
+- Audio bitrate: 320 kbps
 
-The exact encoder settings may be adjusted for the target streaming service, available bandwidth, and system resources.
+These are the settings in the current example configuration. Adjust them only when needed for your server, bandwidth, or playback compatibility.
 
 ## Requirements
 
 - An operating AzuraCast installation.
-- Liquidsoap with the required FFmpeg encoding support.
-- FFmpeg codecs required by the selected output format.
+- Liquidsoap with the required FFmpeg filter and encoding support.
+- An Icecast server/output available to the station.
+- An Icecast mount point configured for the video feed.
+- AutoDJ enabled for the mount point as required by the current example configuration.
 - A background video file supported by the installed FFmpeg build.
 - A TrueType font file for the Now Playing overlay.
-- A reachable streaming destination and valid credentials for the selected output method.
+- The correct Icecast port and mount-point password.
 
 ## Configuration
 
-Use the configuration files in this repository as templates. Before running the stream, review the station paths, media files, overlay settings, and output destination and adapt them to your own AzuraCast installation.
+Use the configuration files in this repository as templates. Review all station-specific paths and Icecast settings before enabling the script.
 
 ### Station media and overlay files
 
-The video workflow uses these media assets:
+The current video workflow expects these files:
 
-- video.mp4 — background video to loop.
-- font.ttf — font used for the Now Playing overlay.
-- nowplaying.txt — text file containing the current Now Playing information.
+- `video.mp4` — background video.
+- `font.ttf` — font used for the Now Playing overlay.
+- `nowplaying.txt` — AzuraCast-generated text file containing current Now Playing information.
 
 Example station directory layout:
 
-    /var/azuracast/stations/your_station/
-    ├── media/
-    │   └── videostream/
-    │       ├── video.mp4
-    │       └── font.ttf
-    └── config/
-        └── nowplaying.txt
+```text
+/var/azuracast/stations/your_station/
+├── media/
+│   └── videostream/
+│       ├── video.mp4
+│       └── font.ttf
+└── config/
+    └── nowplaying.txt
+```
 
-The actual paths depend on your AzuraCast installation and the configuration you use. Make sure the Liquidsoap process can read the files.
+The actual station directory depends on your AzuraCast installation. Make sure the Liquidsoap process can read the video, font, and Now Playing files.
 
-### Streaming destination
+### Icecast mount point
 
-Set the destination URL and stream key in the appropriate configuration for the output method you are using.
+Configure an Icecast mount point for the video output in your AzuraCast/Icecast setup. The example script uses:
 
-For an RTMP destination, the configuration may use values like:
+```liquidsoap
+mount_point = "/video.ts"
+```
 
-    rtmp_host = "rtmp://your-private-server.example"
-    rtmp_key = "YOUR_STREAM_KEY"
+Use the mount name configured for your installation. The mount point, Icecast port, and password must match the destination settings on your server.
 
-    rtmp_url = "#{rtmp_host}/#{rtmp_key}"
+### Station and Icecast settings
 
-These are example placeholders, not working credentials. Follow the configuration format used by the selected streaming output.
+Review these settings in `video_stream_via_icecast.liq`:
+
+- `station_base_dir` — absolute path to the station directory.
+- `mount_point` — Icecast video mount path.
+- `icecast_password` — password accepted by the Icecast server.
+- `host` — Icecast host reachable from Liquidsoap.
+- `port` — numeric Icecast listening port.
+
+**Important:** Replace every example value before starting Liquidsoap. The `port` value must be a valid numeric port, not descriptive placeholder text. Do not publish real passwords or other credentials in this repository.
+
+The example uses `127.0.0.1` as the Icecast host. Keep that value only if Icecast is reachable from the Liquidsoap process on the same host/container network; otherwise use the correct internal address for your deployment.
 
 ### Now Playing overlay
 
-Overlay font size, position, and color should be adjusted for your video dimensions and layout. For example:
+The overlay settings control the text appearance and position:
 
-    font_size = "48"
-    font_x = "40"
-    font_y = "960"
-    font_color = "white"
+```liquidsoap
+font_size = "50"
+font_x = "70"
+font_y = "990"
+font_color = "white"
+```
 
-Ensure the text remains within the visible video frame.
+Adjust these values for your video dimensions and layout. Ensure the text remains within the visible video frame and that the font file is readable.
 
 ## Protect your credentials
 
-**Never commit a real RTMP stream key, password, API key, or other secret to a public repository.**
+**Never commit a real Icecast password, API key, stream key, or other secret to a public repository.**
 
 - Use placeholders in committed example files.
-- Store production credentials in a secure location.
+- Keep production credentials in a secure location.
 - Restrict access to configuration files containing secrets.
 - If a credential is accidentally published, rotate it immediately.
 
 ## Reliability and station protection
 
-The radio station's normal AzuraCast audio broadcast should remain independent of the video-streaming output. Configure and test video streaming so that a failed or disconnected video destination does not interrupt the station's primary radio stream.
+The station's normal AzuraCast radio broadcast should remain independent of the video-streaming output. Configure and test the video output so that a failed or disconnected video destination does not interrupt the primary radio stream.
 
-For production use, monitor the video output and configure appropriate reconnection or restart behavior for the selected streaming method.
+Review Liquidsoap logs after saving changes and restarting broadcasting. Confirm that the video output connects to the intended Icecast mount and that the audio and video remain synchronized.
 
 ## Troubleshooting
+
+### Liquidsoap will not start
+
+- Read the first Liquidsoap error in the station logs.
+- Check the reported line number and character range.
+- Verify Liquidsoap syntax, including commas, parentheses, and quoted strings.
+- Confirm that the Icecast port is a numeric value.
+- Confirm that the installed Liquidsoap version supports the functions and FFmpeg filters used by the script.
 
 ### Video does not appear
 
 - Confirm the background video path is correct.
 - Confirm the file exists and is readable by Liquidsoap.
 - Check that the video format and codecs are supported by FFmpeg.
-- Review the Liquidsoap logs for decoder or encoder errors.
+- Confirm the Icecast mount point and port.
+- Review Liquidsoap logs for decoder, encoder, or connection errors.
 
 ### Now Playing text is missing
 
-- Confirm the Now Playing text file exists and is being updated.
+- Confirm the AzuraCast Now Playing text file exists and is being updated.
 - Confirm the font file exists and is readable.
 - Check the overlay position, size, and color.
 - Verify the configured text-file refresh interval.
 
-### Streaming destination will not connect
+### Icecast mount will not connect
 
-- Confirm the destination URL and stream key.
+- Confirm the Icecast host and numeric port.
+- Confirm the mount point matches the configured mount.
+- Verify the Icecast password.
 - Check network connectivity and firewall rules.
-- Confirm the destination accepts the configured container and codecs.
-- Review Liquidsoap and FFmpeg logs for connection or encoding errors.
+- Confirm that the Icecast server accepts the MPEG-TS output.
+- Review Liquidsoap and Icecast logs for connection errors.
 
 ### Radio audio is interrupted
 
@@ -144,11 +177,11 @@ The video output should not take down the primary radio broadcast. Review the Li
 
 ## Project direction
 
-This repository is intended to grow beyond a single RTMP-specific configuration. Future development may add other ways to deliver radio video streams from AzuraCast. New methods will be documented here as they become available and are tested.
+This repository is intended to support more than one way to deliver video from AzuraCast. The current documented example publishes an MPEG-TS video stream through Icecast. Other streaming methods can be added as separate configurations and documented here after they are implemented and tested.
 
 ## Contributing
 
-Issues and contributions are welcome. When proposing a new streaming method, include the required Liquidsoap/FFmpeg components, configuration options, destination requirements, and any reliability considerations.
+Issues and contributions are welcome. When proposing another streaming method, include its Liquidsoap/FFmpeg requirements, configuration options, destination requirements, and reliability considerations.
 
 ## Credits
 
