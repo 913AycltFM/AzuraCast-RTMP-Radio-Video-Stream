@@ -53,7 +53,22 @@ def add_nowplaying_text(s) =
   def mkfilter(graph)
     let {video = video_track} = source.tracks(s)
     video_track = ffmpeg.filter.video.input(graph, video_track)
-    video_track = ffmpeg.filter.drawtext(fontfile=font_file, fontsize=font_size, x=font_x, y=font_y, fontcolor=font_color, textfile=nowplaying_file, reload=5, bordercolor="black", borderw=2, shadowcolor="black", shadowx=2, shadowy=2, graph, video_track)
+    video_track = ffmpeg.filter.drawtext(
+      graph,
+      video_track,
+      fontfile=font_file,
+      fontsize=font_size,
+      x=font_x,
+      y=font_y,
+      fontcolor=font_color,
+      textfile=nowplaying_file,
+      reload=5,
+      bordercolor="black",
+      borderw=2,
+      shadowcolor="black",
+      shadowx=2,
+      shadowy=2
+    )
     video_track = ffmpeg.filter.video.output(graph, video_track)
     source({ video = video_track })
   end
@@ -64,21 +79,22 @@ end
 radio_infallible = fallback(track_sensitive=false, [radio, blank(duration=1.0)])
 
 # Then use this infallible source in your mux
-videostream = single(video_file)
+# Use a normal playlist so the background video repeats continuously.
+videostream = playlist(mode="normal", [video_file])
 videostream = add_nowplaying_text(videostream)
 videostream = source.mux.video(video=videostream, radio_infallible)
 
 # Output to Icecast
 enc = %ffmpeg(
   format="mpegts",
-  %video.raw(codec="libx264", 
-    pixel_format="yuv420p", 
+  %video.raw(codec="libx264",
+    pixel_format="yuv420p",
     b="2500k",
     preset="veryfast",
     r=30,
-    g=60
-    width = 1920,
-    height = 1080
+    g=60,
+    width=1920,
+    height=1080
   ),
   %audio(
     codec="aac",
@@ -94,13 +110,13 @@ output.icecast(
   port=8000,
   password=icecast_password,
   mount=mount_point,
-  name="Your Staton Name (Video)",
-  description="Your Staton solgun or anything you want in this",
-  genre="Your Staton's genre",
+  name="Your Station Name (Video)",
+  description="Your station slogan or description",
+  genre="Your Station's genre",
   public=true,
   encoding="UTF-8",
   send_icy_metadata=false,
-  fallible=true,  # Add this parameter
+  fallible=true,
   videostream
 )
 # endcustomconfig(custom_config_bottom)
