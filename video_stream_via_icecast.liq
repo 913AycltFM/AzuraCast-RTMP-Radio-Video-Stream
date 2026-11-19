@@ -11,7 +11,7 @@
 # To use this script, you must be running at least AzuraCast 0.24.0 or a later Rolling Release version.
 #
 # Before Using This Script:
-# - Create a Icecast Mount Point to point's your live video feed too
+# - Create a Icecast Mount Point to point's your live video feed too and you must have AutoDJ on the mout that ypou created to work right the first time
 # - Upload a video file to a folder under your station's media library
 # - Choose a font to display Now Playing data and upload a TTF version of that font to the same folder
 #
