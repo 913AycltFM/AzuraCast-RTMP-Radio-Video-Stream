@@ -48,11 +48,10 @@ Edit the RTMP server address and stream key in `video_stream_via_rtmp.liq`:
 
 ```liquidsoap
 rtmp_host = "rtmp://your-private-server.com"
-rtmp_key = "YOUR_STREAM_KEY"
-rtmp_url = "#{rtmp_host}/#{rtmp_key}"
+rtmp_key  = "YOUR_STREAM_KEY"
 ```
 
-Replace the example host and key with the values supplied by your RTMP server. Keep the stream key private.
+Replace the example host and key with the values supplied by your RTMP server. The configuration automatically combines them into the destination URL using `rtmp_url = "#{rtmp_host}/#{rtmp_key}"`. Keep the stream key private.
 
 ### 2. Icecast video streaming
 
