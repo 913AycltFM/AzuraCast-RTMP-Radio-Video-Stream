@@ -1,176 +1,155 @@
-# AzuraCast RTMP Radio Video Stream
+# AzuraCast Radio Video Streaming
 
-A Liquidsoap configuration for creating a video stream from an AzuraCast radio station and sending it to a private RTMP server.
+A configurable radio-to-video streaming project for [AzuraCast](https://www.azuracast.com/) and [Liquidsoap](https://www.liquidsoap.info/).
 
-The configuration loops a background video, overlays the AzuraCast Now Playing text, combines the video with the station's radio audio, and encodes the result for RTMP/FLV output.
+The project combines live radio audio from an AzuraCast station with video content to create a video stream. It is designed to be reusable with different AzuraCast stations rather than being tied to one radio brand or station.
+
+The repository is being structured to support different streaming methods over time. The existing configuration provides an RTMP/FLV streaming workflow; additional output methods can be added as the project develops.
 
 ## Features
 
-- Loops a background MP4 video.
-- Displays AzuraCast Now Playing information over the video.
-- Automatically reloads the Now Playing text every 5 seconds.
-- Combines the video with the station's radio audio.
+- Uses live radio audio from an AzuraCast station.
+- Plays a looping background video.
+- Displays Now Playing information over the video.
+- Refreshes the Now Playing text automatically.
 - Encodes video with H.264.
 - Encodes audio with AAC.
-- Outputs the finished stream to a private RTMP destination.
-- Uses a 2500 kbps video bitrate and 192 kbps audio bitrate.
-- Uses 30 FPS video with a 50-frame GOP.
-- Keeps the configuration simple and compatible with the AzuraCast Station Profile custom configuration.
+- Supports a configurable streaming destination and stream key.
+- Keeps station-specific paths and credentials configurable.
+- Designed to allow additional streaming methods in future updates.
 
-## Configuration
+## Current streaming workflow
 
-Open `video_stream.liq` and update the values near the top of the file.
+The current implementation uses Liquidsoap and FFmpeg to combine the radio audio and video, encode the result, and send it to a private RTMP destination.
 
-### Station directory
-
-Set `station_base_dir` to your AzuraCast station directory:
-
-```liquidsoap
-station_base_dir = "/var/azuracast/stations/your_station"
-```
-
-The configuration expects these files:
-
-```
-/var/azuracast/stations/your_station/media/videostream/video.mp4
-/var/azuracast/stations/your_station/media/videostream/font.ttf
-/var/azuracast/stations/your_station/config/nowplaying.txt
-```
-
-### RTMP destination
-
-The RTMP server and stream key are configured separately:
-
-```liquidsoap
-rtmp_host = "rtmp://your-private-server.com"
-rtmp_key  = "YOUR_STREAM_KEY"
-
-rtmp_url = "#{rtmp_host}/#{rtmp_key}"
-```
-
-The configuration automatically combines the server URL and stream key into the final RTMP destination.
-
-## Now Playing overlay
-
-The video uses AzuraCast's automatically generated:
-
-```
-/config/nowplaying.txt
-```
-
-file as the source for the Now Playing text.
-
-The default overlay settings are:
-
-```liquidsoap
-font_size = "50"
-font_x = "60"
-font_y = "990"
-font_color = "white"
-```
-
-Adjust these values to position the text for your video resolution.
-
-The text is reloaded every 5 seconds:
-
-```liquidsoap
-reload = 5
-```
-
-## Video and audio encoding
-
-The RTMP output uses FFmpeg with FLV:
+Current RTMP output settings:
 
 ### Video
 
-- Codec: H.264 (`libx264`)
-- Pixel format: `yuv420p`
-- Bitrate: 2500 kbps
-- Preset: `veryfast`
+- Container: FLV
+- Codec: H.264 (libx264)
+- Pixel format: yuv420p
+- Resolution: 1920 × 1080
 - Frame rate: 30 FPS
-- GOP: 50 frames
+- Video bitrate: 2500 kbps
+- Encoder preset: veryfast
+- GOP/keyframe interval: 60 frames
 
 ### Audio
 
 - Codec: AAC
 - Sample rate: 44.1 kHz
-- Channels: 2
-- Bitrate: 192 kbps
+- Channels: 2 (stereo)
 
-## RTMP output
+The exact encoder settings may be adjusted for the target streaming service, available bandwidth, and system resources.
 
-The finished video and radio audio are sent using:
+## Requirements
 
-```liquidsoap
-output.url(
-  url=rtmp_url,
-  fallible=true,
-  enc,
-  videostream
-)
-```
+- An operating AzuraCast installation.
+- Liquidsoap with the required FFmpeg encoding support.
+- FFmpeg codecs required by the selected output format.
+- A background video file supported by the installed FFmpeg build.
+- A TrueType font file for the Now Playing overlay.
+- A reachable streaming destination and valid credentials for the selected output method.
 
-Make sure your RTMP server accepts FLV/RTMP input and that the stream key is valid.
+## Configuration
 
-## File layout
+Use the configuration files in this repository as templates. Before running the stream, review the station paths, media files, overlay settings, and output destination and adapt them to your own AzuraCast installation.
 
-The configuration uses:
+### Station media and overlay files
 
-```
-station_base_dir/
-├── media/
-│   └── videostream/
-│       ├── video.mp4
-│       └── font.ttf
-└── config/
-    └── nowplaying.txt
-```
+The video workflow uses these media assets:
 
-## Important security note
+- video.mp4 — background video to loop.
+- font.ttf — font used for the Now Playing overlay.
+- nowplaying.txt — text file containing the current Now Playing information.
 
-**Never commit a real RTMP stream key to a public GitHub repository.**
+Example station directory layout:
 
-Keep production credentials in your private AzuraCast configuration or another secure secret-management method.
+    /var/azuracast/stations/your_station/
+    ├── media/
+    │   └── videostream/
+    │       ├── video.mp4
+    │       └── font.ttf
+    └── config/
+        └── nowplaying.txt
 
-The example values in `video_stream.liq` are placeholders and should be replaced in your station configuration.
+The actual paths depend on your AzuraCast installation and the configuration you use. Make sure the Liquidsoap process can read the files.
+
+### Streaming destination
+
+Set the destination URL and stream key in the appropriate configuration for the output method you are using.
+
+For an RTMP destination, the configuration may use values like:
+
+    rtmp_host = "rtmp://your-private-server.example"
+    rtmp_key = "YOUR_STREAM_KEY"
+
+    rtmp_url = "#{rtmp_host}/#{rtmp_key}"
+
+These are example placeholders, not working credentials. Follow the configuration format used by the selected streaming output.
+
+### Now Playing overlay
+
+Overlay font size, position, and color should be adjusted for your video dimensions and layout. For example:
+
+    font_size = "48"
+    font_x = "40"
+    font_y = "960"
+    font_color = "white"
+
+Ensure the text remains within the visible video frame.
+
+## Protect your credentials
+
+**Never commit a real RTMP stream key, password, API key, or other secret to a public repository.**
+
+- Use placeholders in committed example files.
+- Store production credentials in a secure location.
+- Restrict access to configuration files containing secrets.
+- If a credential is accidentally published, rotate it immediately.
+
+## Reliability and station protection
+
+The radio station's normal AzuraCast audio broadcast should remain independent of the video-streaming output. Configure and test video streaming so that a failed or disconnected video destination does not interrupt the station's primary radio stream.
+
+For production use, monitor the video output and configure appropriate reconnection or restart behavior for the selected streaming method.
 
 ## Troubleshooting
 
-### No video
+### Video does not appear
 
-Check that:
+- Confirm the background video path is correct.
+- Confirm the file exists and is readable by Liquidsoap.
+- Check that the video format and codecs are supported by FFmpeg.
+- Review the Liquidsoap logs for decoder or encoder errors.
 
-- `video.mp4` exists at the configured path.
-- The file can be read by the AzuraCast/Liquidsoap process.
-- The video is compatible with FFmpeg.
+### Now Playing text is missing
 
-### Now Playing text does not appear
+- Confirm the Now Playing text file exists and is being updated.
+- Confirm the font file exists and is readable.
+- Check the overlay position, size, and color.
+- Verify the configured text-file refresh interval.
 
-Check that:
+### Streaming destination will not connect
 
-- `font.ttf` exists.
-- `config/nowplaying.txt` exists.
-- The Liquidsoap process can read both files.
-- `font_x` and `font_y` place the text within the video frame.
+- Confirm the destination URL and stream key.
+- Check network connectivity and firewall rules.
+- Confirm the destination accepts the configured container and codecs.
+- Review Liquidsoap and FFmpeg logs for connection or encoding errors.
 
-### RTMP connection fails
+### Radio audio is interrupted
 
-Check that:
+The video output should not take down the primary radio broadcast. Review the Liquidsoap output configuration and logs, and keep video-streaming failures isolated from the station's normal AzuraCast audio pipeline.
 
-- The RTMP server is reachable.
-- `rtmp_host` is correct.
-- The stream key is correct.
-- The RTMP server accepts FLV input.
-- No firewall is blocking the RTMP connection.
+## Project direction
 
-## Files
+This repository is intended to grow beyond a single RTMP-specific configuration. Future development may add other ways to deliver radio video streams from AzuraCast. New methods will be documented here as they become available and are tested.
 
-- `video_stream.liq` — main Liquidsoap configuration.
-- `video.mp4` — looping background video.
-- `font.ttf` — font used for the Now Playing overlay.
-- `nowplaying.txt` — AzuraCast-generated Now Playing text.
+## Contributing
+
+Issues and contributions are welcome. When proposing a new streaming method, include the required Liquidsoap/FFmpeg components, configuration options, destination requirements, and any reliability considerations.
 
 ## Credits
 
-Designed for use with [AzuraCast](https://www.azuracast.com/) and Liquidsoap.
-
+Built for use with [AzuraCast](https://www.azuracast.com/), [Liquidsoap](https://www.liquidsoap.info/), and [FFmpeg](https://ffmpeg.org/).
