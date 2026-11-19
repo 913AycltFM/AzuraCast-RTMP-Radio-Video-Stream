@@ -81,7 +81,7 @@ radio_infallible = fallback(track_sensitive=false, [radio, blank(duration=1.0)])
 
 # Then use this infallible source in your mux
 # Use a normal playlist so the background video repeats continuously.
-videostream = playlist(mode="normal", [video_file])
+videostream = single(video_file)
 videostream = add_nowplaying_text(videostream)
 videostream = source.mux.video(video=videostream, radio_infallible)
 
