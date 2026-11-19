@@ -87,7 +87,7 @@ videostream = source.mux.video(video=videostream, radio_infallible)
 
 # Output to Icecast
 enc = %ffmpeg(
-  format="flv",
+  format="mpegts",
   %video.raw(codec="libx264",
     pixel_format="yuv420p",
     b="2500k",
