@@ -8,7 +8,7 @@
 #
 # This script is based on the YouTube streaming script but modified to output to an Icecast mount point.
 #
-# To use this script, you must be running at least AzuraCast 0.19.0 or a later Rolling Release version.
+# To use this script, you must be running at least AzuraCast 0.24.0 or a later Rolling Release version.
 #
 # Before Using This Script:
 # - Upload a video file to a folder under your station's media library
