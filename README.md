@@ -51,7 +51,13 @@ rtmp_host = "rtmp://your-private-server.com"
 rtmp_key  = "YOUR_STREAM_KEY"
 ```
 
-Replace the example host and key with the values supplied by your RTMP server. The configuration automatically combines them into the destination URL using `rtmp_url = "#{rtmp_host}/#{rtmp_key}"`. Keep the stream key private.
+Replace the example host and key with the exact values supplied by your RTMP server. **Both values are required.** The `rtmp_url` line combines the server address and stream key into the complete destination URL that this Liquidsoap configuration sends the live video and radio audio to. This is the destination used by `output.url()`; without a correct `rtmp_url`, this configuration cannot publish the stream to your RTMP server.
+
+```liquidsoap
+rtmp_url = "#{rtmp_host}/#{rtmp_key}"
+```
+
+For example, if your server address is `rtmp://live.example.com` and your stream key is `my-stream-key`, the resulting destination is `rtmp://live.example.com/my-stream-key`. Keep the stream key private.
 
 ### 2. Icecast video streaming
 
