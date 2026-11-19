@@ -86,7 +86,7 @@ videostream = source.mux.video(video=videostream, radio_infallible)
 
 # Output to Icecast
 enc = %ffmpeg(
-  format="mpegts",
+  format="flv",
   %video.raw(codec="libx264",
     pixel_format="yuv420p",
     b="2500k",
@@ -104,10 +104,11 @@ enc = %ffmpeg(
     profile="aac_low"
   )
 )
+
 output.icecast(
   enc,
   host="127.0.0.1",
-  port=8000,
+  port=your stations port number,
   password=icecast_password,
   mount=mount_point,
   name="Your Station Name (Video)",
